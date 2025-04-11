@@ -15,9 +15,17 @@
     "@hello-pangea/dnd": "^18.0.1",
     "@mui/icons-material": "^7.0.1",
     "@mui/material": "^7.0.1",
+    "@reduxjs/toolkit": "^2.6.1",
+    "file-saver": "^2.0.5",
+    "install": "^0.13.0",
+    "npm": "^11.3.0",
     "react": "^19.0.0",
     "react-beautiful-dnd": "^13.1.1",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^19.0.0",
+    "react-redux": "^9.2.0",
+    "redux-undo": "^1.1.0",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

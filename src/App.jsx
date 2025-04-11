@@ -28,71 +28,56 @@ const App = () => {
     const [columns, setColumns] = useState([
         {
             id: "todo",
-            title: "Todo",
-            color: "#fffde7",
-            headerColor: "#fbc02d",
-            cards: [
-                { id: "t1", title: "Initial Research" },
-                { id: "t2", title: "Requirement Gathering" }
-            ],
-            // No dragAllowedfrom or dropAllowedTo — allows all movements by default
-        },
-        {
-            id: "new",
-            title: "New Requests",
+            title: "To Do",
             color: "#fce4ec",
             headerColor: "#ec407a",
-            cards: [
-                { id: "n1", title: "API Integration" }
-            ],
-            dropAllowedTo: ["inprogress", "rejected"]
+            allowToggle: true
         },
         {
             id: "inprogress",
             title: "In Progress",
             color: "#e3f2fd",
             headerColor: "#42a5f5",
-            cards: [
-                { id: "p1", title: "Develop UI" }
-            ],
-            dragAllowedfrom: ["todo", "new"],
-            dropAllowedTo: ["completed", "withdrawn"],
-            expandable: true
+            dragAllowedfrom: ["todo"],
+            dropAllowedTo: ["completed", "hold"],
+            allowToggle: true
+        },
+        {
+            id: "hold",
+            title: "On Hold",
+            color: "#f3e5f5",
+            headerColor: "#ab47bc"
+        },
+        {
+            id: "withdrawn",
+            title: "Withdrawn",
+            color: "#fbe9e7",
+            headerColor: "#ff7043"
         },
         {
             id: "completed",
             title: "Completed",
             color: "#e8f5e9",
             headerColor: "#66bb6a",
-            cards: [
-                { id: "c1", title: "Code Review" }
-            ],
-            dragAllowedfrom: ["inprogress"], // No dropAllowedTo means this column can drop to any column
-            expandable: true
-
+            allowToggle: true
         },
         {
-            id: "withdrawn",
-            title: "Withdrawn",
-            color: "#f3e5f5",
-            headerColor: "#ab47bc",
-            cards: [],
-            // No restrictions — open for any drag/drop
-        },
-        {
-            id: "rejected",
-            title: "Rejected",
-            color: "#ffebee",
-            headerColor: "#ef5350",
-            cards: [
-                { id: "r1", title: "Out of Scope" }
-            ],
-            dragAllowedfrom: ["new", "todo"],
-            dropAllowedTo: []
-            // Drop allowed to no one — cards can’t be moved out from here
+            id: "done",
+            title: "Done",
+            color: "#ede7f6",
+            headerColor: "#7e57c2"
         }
     ]);
 
+    const [data, setData] = useState([
+        { id: "c1", title: "Setup project", columnId: "todo", tags: ["setup"], priority: "high", assignedTo: "Alice" },
+        { id: "c2", title: "Build UI", columnId: "inprogress", tags: ["ui"], priority: "medium", assignedTo: "Bob" },
+        { id: "c3", title: "Write tests", columnId: "todo", priority: "low", assignedTo: "Charlie" },
+        { id: "c4", title: "Demo review", columnId: "completed" },
+        { id: "c5", title: "Bug Fix", columnId: "hold", tags: ["bug"], assignedTo: "David" },
+        { id: "c6", title: "Retrospective", columnId: "done" },
+        { id: "c7", title: "Requirements analysis", columnId: "withdrawn" },
+    ])
     const [editCard, setEditCard] = useState(null);
     const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
 
@@ -141,6 +126,7 @@ const App = () => {
                 isDropAllowed={isDropAllowed}
                 CustomHeader={CustomHeader}
                 CustomCard={CardItem}
+                cards={data}
             />
 
             <EditCardModal

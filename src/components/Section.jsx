@@ -16,7 +16,7 @@ const Section = ({ column, onEditCard, onDeleteCard, columns, CustomHeader, Cust
     return (
         <Paper style={{ backgroundColor: column.color || '#f0f0f0', padding: 8, width: expanded ? 250 : 'fit-content', transition: "width 0.3s", display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div style={{ backgroundColor: column.headerColor || "#1976d2", display: "flex", flexDirection: expanded ? "row" : 'column', alignItems: "center", gap: 8, width: '100%', minHeight: expanded ? 'fit-content' : '-webkit-fill-available' }}>
-                {column?.expandable && (
+                {column?.allowToggle && (
                     <IconButton size="small" onClick={() => setExpanded(!expanded)}>
                         {expanded ? <ExpandLess /> : <ExpandMore />}
                     </IconButton>

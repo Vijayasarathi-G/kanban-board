@@ -1,61 +1,78 @@
-import React from "react";
+// File: src/components/KanbanBoard.jsx
+
+import React, { useEffect, useMemo, useState } from "react";
 import Section from "./Section";
-import { DragDropContext } from "@hello-pangea/dnd";
-import { Snackbar } from "@mui/material";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import { Snackbar, TextField, Button, Stack } from "@mui/material";
+import { useDispatch, useSelector } from "react-redux";
+import { updateColumnsFromCards, moveCard, undo, redo } from "../store/kanbanSlice";
+import { saveAs } from "file-saver";
 
-const KanbanBoard = ({ columns, setColumns, onEditCard, onDeleteCard, CustomHeader, CustomCard }) => {
-    const [snackbar, setSnackbar] = React.useState({ open: false, message: "" });
+const KanbanBoard = ({ columns, cards, onEditCard, onDeleteCard, CustomHeader, CustomCard }) => {
+    const [snackbar, setSnackbar] = useState({ open: false, message: "" });
+    const [searchTerm, setSearchTerm] = useState("");
+    const dispatch = useDispatch();
+    const mappedColumns = useSelector(state => state.kanban.present.columns);
 
-    const handleDragEnd = (result) => {
-        const { source, destination } = result;
+    useEffect(() => {
+        dispatch(updateColumnsFromCards({ columns, cards }));
+    }, [columns, cards, dispatch]);
+
+    const handleMoveCard = (source, destination) => {
         if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) return;
 
-        const sourceCol = columns.find(col => col.id === source.droppableId);
-        const destCol = columns.find(col => col.id === destination.droppableId);
+        const sourceCol = mappedColumns.find(col => col.id === source.droppableId);
+        const destCol = mappedColumns.find(col => col.id === destination.droppableId);
 
-        // Check if drop is allowed based on source and destination
         if (sourceCol?.dropAllowedTo && !sourceCol.dropAllowedTo.includes(destCol.id)) {
             setSnackbar({ open: true, message: `Cannot move card from ${sourceCol.title} to ${destCol.title}` });
             return;
         }
 
-        const sourceCards = [...sourceCol.cards];
-        const [removed] = sourceCards.splice(source.index, 1);
-
-        if (sourceCol === destCol) {
-            sourceCards.splice(destination.index, 0, removed);
-            const updatedCol = { ...sourceCol, cards: sourceCards };
-            const updatedColumns = columns.map(col => col.id === updatedCol.id ? updatedCol : col);
-            setColumns(updatedColumns);
-        } else {
-            const destCards = [...destCol.cards];
-            destCards.splice(destination.index, 0, removed);
-            const updatedColumns = columns.map(col => {
-                if (col.id === sourceCol.id) return { ...col, cards: sourceCards };
-                if (col.id === destCol.id) return { ...col, cards: destCards };
-                return col;
-            });
-            setColumns(updatedColumns);
-        }
+        dispatch(moveCard({ source, destination }));
     };
+
+    const handleExportJSON = () => {
+        const exportData = JSON.stringify(mappedColumns, null, 2);
+        const blob = new Blob([exportData], { type: "application/json" });
+        saveAs(blob, "kanban_board.json");
+    };
+
+    const filteredColumns = mappedColumns.map(col => ({
+        ...col,
+        cards: col.cards.filter(card => card.title.toLowerCase().includes(searchTerm.toLowerCase()))
+    }));
 
     return (
         <>
-            <DragDropContext onDragEnd={handleDragEnd}>
-                <div style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "nowrap", padding: 16 }}>
-                    {columns.map((column) => (
+            <Stack direction="row" spacing={2} justifyContent="center" sx={{ mb: 2 }}>
+                <Button onClick={() => dispatch(undo())} variant="contained">Undo</Button>
+                <Button onClick={() => dispatch(redo())} variant="contained">Redo</Button>
+                <TextField
+                    size="small"
+                    label="Search"
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                />
+                <Button variant="outlined" onClick={handleExportJSON}>Export JSON</Button>
+            </Stack>
+            <DndProvider backend={HTML5Backend}>
+                <div style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap", padding: 16 }}>
+                    {filteredColumns.map((column) => (
                         <Section
                             key={column.id}
                             column={column}
                             onEditCard={onEditCard}
                             onDeleteCard={onDeleteCard}
-                            columns={columns}
+                            columns={mappedColumns}
+                            onMoveCard={handleMoveCard}
                             CustomHeader={CustomHeader}
                             CustomCard={CustomCard}
                         />
                     ))}
                 </div>
-            </DragDropContext>
+            </DndProvider>
             <Snackbar
                 open={snackbar.open}
                 autoHideDuration={3000}
